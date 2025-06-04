@@ -13,7 +13,7 @@ Handling underrepresented regions in regression target distributions is a well-k
 - SMOTE-based and relevance-aware strategies (e.g., SMOGN, WERCS, WSMOTER)
 - Advanced techniques including:
   - **DAVID** (VAE-based)
-  - **CART-IR** (CART-based synthetic generation with relevance and density adaptation)
+  - **GenCART-IR** (CART-based synthetic generation with relevance and density adaptation) - originally proposed
 
 It also supports custom evaluation metrics to better reflect performance on rare target regions.
 
@@ -25,13 +25,8 @@ It also supports custom evaluation metrics to better reflect performance on rare
 SynthTabularDataGeneration-IR/
 ├── data/                     # Raw and processed datasets
 ├── results/                  # Output tables, plots, rankings
-├── scripts/                  # High-level execution scripts
-├── learners/                 # Model-specific evaluation logic
-├── oversampling/            # Implementations of resampling strategies
-├── metrics/                 # Custom evaluation metrics (RW-RMSE, SERA, etc.)
-├── utils/                   # Helper functions (e.g., plotting, relevance)
-├── main.py                  # Unified experimental pipeline
-├── environment.yml          # Conda environment file
+├── functions/                # Adapted functions 
+├── runtime/                  # Runtime statistics
 └── README.md
 ```
 
@@ -46,33 +41,12 @@ git clone https://github.com/antoniopedropi/SynthTabularDataGeneration-IR.git
 cd SynthTabularDataGeneration-IR
 ```
 
-2. Create and activate the environment:
+2. Run main script:
 
 ```bash
-conda env create -f environment.yml
-conda activate synth-ir
+python automated_script_datasets_final.py
 ```
 
----
-
-## 🚀 How to Run
-
-Run full evaluation with 2×5-fold CV, oversampling, and metrics:
-
-```bash
-python main.py --config configs/cart_ir.yaml
-```
-
-Or run individual scripts, e.g.,
-
-```bash
-python scripts/run_cart_ir.py
-python scripts/run_vaey.py
-```
-
-Use `--help` on each script for options.
-
----
 
 ## 📊 Output Artifacts
 
@@ -80,7 +54,7 @@ All results are saved to the `results/` directory:
 
 - Metric tables: RMSE, RW-RMSE, SERA
 - Runtime benchmarks
-- CD diagrams and Wilcoxon test plots
+- Wilcoxon test plots
 - Summary tables of best-performing strategies
 
 ---
@@ -89,8 +63,7 @@ All results are saved to the `results/` directory:
 
 Implemented custom metrics include:
 
-- Relevance-weighted MSE / MAE / R²
-- Root RW-RMSE
+- Relevance-weighted MSE / RMSE / MAE / R²
 - SERA (Synthetic Error Reduction Area)
 
 These help assess model performance especially on rare/extreme target values.
@@ -118,7 +91,7 @@ If you use this codebase, please cite our paper:
 ## 📬 Contact
 
 **António Pedro Pinheiro**  
-📧 antoniopedropi [at] gmail [dot] com  
+📧 up201704931 [at] up [dot] pt  
 🔗 [https://github.com/antoniopedropi](https://github.com/antoniopedropi)
 
 ---
