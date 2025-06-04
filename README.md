@@ -91,7 +91,7 @@ If you use this codebase, please cite our paper:
 ## 📬 Contact
 
 **António Pedro Pinheiro**  
-📧 up201704931 [at] up [dot] pt  
+📧 up201704931@up.pt  
 🔗 [https://github.com/antoniopedropi](https://github.com/antoniopedropi)
 
 ---
