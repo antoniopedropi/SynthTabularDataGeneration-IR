@@ -1,1 +1,0 @@
-# SynthTabularDataGeneration-IR
