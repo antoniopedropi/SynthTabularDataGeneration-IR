@@ -5,7 +5,7 @@
 
 ---
 
-## 🎯 Motivation
+## Motivation
 
 Handling underrepresented regions in regression target distributions is a well-known challenge. This repository provides implementations for:
 
@@ -19,7 +19,7 @@ It also supports custom evaluation metrics to better reflect performance on rare
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 SynthTabularDataGeneration-IR/
@@ -32,7 +32,7 @@ SynthTabularDataGeneration-IR/
 
 ---
 
-## ⚙️ Setup Instructions
+## Setup Instructions
 
 1. Clone the repository:
 
@@ -48,7 +48,7 @@ python automated_script_datasets_final.py
 ```
 
 
-## 📊 Output Artifacts
+## Output Files
 
 All results are saved to the `results/` directory:
 
@@ -59,7 +59,7 @@ All results are saved to the `results/` directory:
 
 ---
 
-## 📏 Supported Metrics
+## Supported Metrics
 
 Implemented custom metrics include:
 
@@ -70,7 +70,7 @@ These help assess model performance especially on rare/extreme target values.
 
 ---
 
-## 📚 Citation
+## Citation
 
 If you use this codebase, please cite our paper:
 
@@ -88,7 +88,7 @@ If you use this codebase, please cite our paper:
 
 ---
 
-## 📬 Contact
+## Contact
 
 **António Pedro Pinheiro**  
 📧 up201704931@up.pt  
