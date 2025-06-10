@@ -1,0 +1,16 @@
+denseweight==0.1.2
+imbalanced_learn==0.13.0
+joblib==1.4.2
+knnor_reg==0.0.3
+matplotlib==3.10.3
+numpy==2.3.0
+pandas==2.3.0
+python_synthpop==0.1.1
+scikit_learn==1.6.1
+scikit_posthocs==0.11.4
+scipy==1.15.3
+seaborn==0.13.2
+statsmodels==0.14.4
+torch==2.7.0
+tqdm==4.67.1
+xgboost==3.0.2

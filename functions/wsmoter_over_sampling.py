@@ -1,4 +1,4 @@
-﻿# Script path: functions/wsmoter_over_sampling.py
+# Script path: functions/wsmoter_over_sampling.py
 
 # This script is part of the 'wsmoter' code, which was developed by: 
 # Camacho, L., Bacao, F. WSMOTER: a novel approach for imbalanced regression. 
