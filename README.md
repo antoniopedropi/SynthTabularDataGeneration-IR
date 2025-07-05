@@ -64,7 +64,7 @@ All results are saved to the `results/` directory:
 Implemented custom metrics include:
 
 - Relevance-weighted MSE / RMSE / MAE / R²
-- SERA (Synthetic Error Reduction Area)
+- SERA (Squared Error Residuals Area)
 
 These help assess model performance especially on rare/extreme target values.
 
