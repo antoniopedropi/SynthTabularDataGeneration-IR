@@ -13,7 +13,7 @@ Handling underrepresented regions in regression target distributions is a well-k
 - SMOTE-based and relevance-aware strategies (e.g., SMOGN, WERCS, WSMOTER)
 - Advanced techniques including:
   - **DAVID** (VAE-based)
-  - **GenCART-IR** (CART-based synthetic generation with relevance and density adaptation) - originally proposed
+  - **CARTGen-IR** (CART-based synthetic generation with relevance and density adaptation) - originally proposed
 
 It also supports custom evaluation metrics to better reflect performance on rare target regions.
 
