@@ -24,9 +24,8 @@ It also supports custom evaluation metrics to better reflect performance on rare
 ```
 SynthTabularDataGeneration-IR/
 ├── data/                     # Raw and processed datasets
-├── results/                  # Output tables, plots, rankings
+├── results/                  # Output tables, plots, rankings, runtime statistics
 ├── functions/                # Adapted functions 
-├── runtime/                  # Runtime statistics
 └── README.md
 ```
 
