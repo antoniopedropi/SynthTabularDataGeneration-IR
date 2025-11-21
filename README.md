@@ -8,7 +8,8 @@
 ## Supplementary Materials
 
 - **CodeOcean Capsule**: a capsule with the code also presented in this repository, fully reproducible, in an already set up Puthon environment, available with the DOI: [10.24433/CO.7826905.v2](https://doi.org/10.24433/CO.7826905.v2)
-- **Zenodo Data Repository**: an "Imbalanced Regression Dataset Repository" comprising 62 datasets tailored for imbalanced regression tasks, available with the DOI: [10.5281/zenodo.17429036](https://doi.org/10.5281/zenodo.17429036)
+- **Zenodo Repository**: an "Imbalanced Regression Dataset Repository" comprising 62 datasets tailored for imbalanced regression tasks, available with the DOI: [10.5281/zenodo.17429036](https://doi.org/10.5281/zenodo.17429036)
+- **GitHub Dataset Repository**: more details on the "Imbalanced Regression Dataset Repository" also published in Zenodo are available at: [Datasets-ImbalancedRegression](https://antoniopedropi.github.io/Datasets-ImbalancedRegression/)
 
 ---
 
@@ -19,7 +20,7 @@ Handling underrepresented regions in regression target distributions is a well-k
 - Classical resampling (Random Undersampling/Oversampling, WERCS)
 - Introduction of Noise (Gaussian Noise - GN)
 - SMOTE-based strategies (SMOTER, SMOGN, WSMOTER, G-SMOTER)
-- Deep Learning techniques (VAE-based: DAVID and TVAE, GAN-based: CTGAN and CopulaGAN, Diffusion-based: TabDiff)
+- Deep Learning techniques (VAE-based: DAVID and TVAE, GAN-based: CTGAN and CopulaGAN, Diffusion-based: TabDiff, Other: KNNOR-REG)
 - **CARTGen-IR** (CART-based synthetic generation with relevance and density adaptation) - originally proposed in our study
 
 It also supports custom evaluation metrics to better reflect performance on rare target regions.
