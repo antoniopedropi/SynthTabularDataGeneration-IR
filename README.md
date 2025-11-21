@@ -5,15 +5,22 @@
 
 ---
 
+## Supplementary Materials
+
+- **CodeOcean Capsule**: a capsule with the code also presented in this repository, fully reproducible, in an already set up Puthon environment, available with the DOI: [10.24433/CO.7826905.v2](https://doi.org/10.24433/CO.7826905.v2)
+- **Zenodo Data Repository**: an "Imbalanced Regression Dataset Repository" comprising 62 datasets tailored for imbalanced regression tasks, available with the DOI: [10.5281/zenodo.17429036](https://doi.org/10.5281/zenodo.17429036)
+
+---
+
 ## Motivation
 
 Handling underrepresented regions in regression target distributions is a well-known challenge. This repository provides implementations for:
 
-- Classical resampling (e.g., Random Undersampling/Oversampling)
-- SMOTE-based and relevance-aware strategies (e.g., SMOGN, WERCS, WSMOTER)
-- Advanced techniques including:
-  - **DAVID** (VAE-based)
-  - **CARTGen-IR** (CART-based synthetic generation with relevance and density adaptation) - originally proposed
+- Classical resampling (Random Undersampling/Oversampling, WERCS)
+- Introduction of Noise (Gaussian Noise - GN)
+- SMOTE-based strategies (SMOTER, SMOGN, WSMOTER, G-SMOTER)
+- Deep Learning techniques (VAE-based: DAVID and TVAE, GAN-based: CTGAN and CopulaGAN, Diffusion-based: TabDiff)
+- **CARTGen-IR** (CART-based synthetic generation with relevance and density adaptation) - originally proposed in our study
 
 It also supports custom evaluation metrics to better reflect performance on rare target regions.
 
@@ -46,26 +53,29 @@ cd SynthTabularDataGeneration-IR
 python automated_script_datasets_final.py
 ```
 
+---
+
+## Supported Metrics
+
+Implemented and used custom metrics include:
+
+- Standard Metrics: RMSE
+- Relevance-weighted Metrics: RW-RMSE
+- SERA (Squared Error Residuals Area)
+- DenseWeight-weighted Metrics: DW-RMSE and DW-SERA (originally proposed)
+
+These help assess model performance especially on rare/extreme target values.
+
+---
 
 ## Output Files
 
 All results are saved to the `results/` directory:
 
-- Metric tables: RMSE, RW-RMSE, SERA
+- Metric tables: RMSE, RW-RMSE, SERA, DW-RMSE and DW-SERA
 - Runtime benchmarks
 - Wilcoxon test plots
 - Summary tables of best-performing strategies
-
----
-
-## Supported Metrics
-
-Implemented custom metrics include:
-
-- Relevance-weighted MSE / RMSE / MAE / R²
-- SERA (Squared Error Residuals Area)
-
-These help assess model performance especially on rare/extreme target values.
 
 ---
 
