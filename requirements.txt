@@ -9,8 +9,10 @@ python_synthpop==0.1.1
 scikit_learn==1.6.1
 scikit_posthocs==0.11.4
 scipy==1.15.3
+sdv==1.28.0
 seaborn==0.13.2
 statsmodels==0.14.4
+tabular-augmentation==0.0.18
 torch==2.7.0
 tqdm==4.67.1
 xgboost==3.0.2
