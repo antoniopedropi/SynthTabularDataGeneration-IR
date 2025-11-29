@@ -73,10 +73,12 @@ These help assess model performance especially on rare/extreme target values.
 
 All results are saved to the `results/` directory:
 
-- Metric tables: RMSE, RW-RMSE, SERA, DW-RMSE and DW-SERA
 - Runtime benchmarks
 - Wilcoxon test plots
 - Summary tables of best-performing strategies
+- Bayesian test plots
+- Toy Visualizations
+- Hyperparameter Study
 
 ---
 
