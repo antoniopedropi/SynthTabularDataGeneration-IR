@@ -51,7 +51,7 @@ cd SynthTabularDataGeneration-IR
 2. Run main script:
 
 ```bash
-python automated_script_datasets_final.py
+python automated_script_article.py
 ```
 
 ---
