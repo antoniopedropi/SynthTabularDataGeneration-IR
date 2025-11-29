@@ -1,4 +1,4 @@
-# Script path: automated_script_datasets_final.py
+# Script path: automated_script_article.py
 
 # Script that automates the processing of multiple datasets, applies various oversampling strategies, trains regression models, and evaluates their performance.
 
@@ -9,6 +9,29 @@ import os
 print(os.getcwd())  # Shows the current working directory
 print(os.listdir())  # Checks what files are listed in the directory
 os.chdir('/Users/antoniopedropi/Library/Mobile Documents/com~apple~CloudDocs/António/Mestrado MSI/2º Ano/Dissertação/Practical Implementation')
+
+
+## LOAD INTERNAL PACKAGES/SCRIPTS ## -----------------------------------------------------------------------------------------
+
+from functions import adjBoxplot
+from functions import relevance_function_ctrl_pts
+from functions import relevance_function_ctrl_pts_normal
+from functions import relevance_function
+from functions import smogn
+from functions import random_under_sampling as ru
+from functions import random_over_sampling as ro
+from functions import random_over_sampling_normal as ron
+from functions import wercs
+from functions import gaussian_noise as gn
+from functions import smoter
+from functions import wsmoter
+from functions import gsmoter
+from functions import david
+from functions import cartgen_ir as cart
+from functions import regression_metrics as rm
+
+from functions import aux_functions
+from functions import main_functions
 
 
 ## LOAD EXTERNAL PACKAGES ## -------------------------------------------------------------------------------------------------
@@ -34,58 +57,32 @@ import multiprocessing as mp
 from glob import glob
 from joblib import Parallel, delayed
 from itertools import product
-
 from datetime import datetime
-
 from dataclasses import dataclass
 from typing import Dict
 
 from sklearn.base import clone
-from sklearn.decomposition import PCA
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, BaggingRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.neural_network import MLPRegressor
-from sklearn.model_selection import KFold, GridSearchCV, RepeatedKFold
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, make_scorer
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+import xgboost as xgb
 
 from xgboost import XGBRegressor
 
 from math import sqrt
 
-from sklearn.ensemble import HistGradientBoostingClassifier
-
-from catboost import CatBoostRegressor
-
 from knnor_reg import data_augment
 
+from sdv.single_table import TVAESynthesizer, CTGANSynthesizer, CopulaGANSynthesizer
+from sdv.metadata import SingleTableMetadata
 
-## LOAD INTERNAL PACKAGES/SCRIPTS ## -----------------------------------------------------------------------------------------
-
-from functions import adjBoxplot
-from functions import relevance_function_ctrl_pts
-from functions import relevance_function_ctrl_pts_normal
-from functions import relevance_function
-from functions import smogn
-from functions import random_under_sampling as ru
-from functions import random_over_sampling as ro
-from functions import random_over_sampling_normal as ron
-from functions import wercs
-from functions import gaussian_noise as gn
-from functions import smoter
-from functions import wsmoter
-from functions import david
-from functions import cart
-from functions import regression_metrics as rm
-
-from functions import aux_functions
-from functions import main_functions
+from tabular_augmentation import ddpm_synthesis
 
 
 ## RELOAD INTERNAL PACKAGES/SCRIPTS ## -----------------------------------------------------------------------------------------
@@ -98,7 +95,7 @@ reload(wercs)  # Reload the module to reflect changes
 
 ## RANDOM STATE INITIALISATION FOR REPRODUCIBILITY ## ------------------------------------------------------------------------------------------------------    
 
-seed = 4 # Set the random seed for Python's built-in random module
+seed = 4 # Set the random seed
 np.random.seed(seed)  # Set the random seed for NumPy
 
 
@@ -290,8 +287,6 @@ def augment_train(base_model, param_dict, strategy, X, y, df, c, dataset_name, t
     - model: trained regression model
     """
     
-    #print(f"Augmenting and training model for dataset: {dataset_name}, strategy: {strategy}, parameters: {c}")
-    
     # Perform data augmentation based on the specified strategy
     balanced_df = augmentation(df, strategy, c, target_variable, relevance_focus)
 
@@ -326,14 +321,14 @@ def augmentation(df, strategy, c, target_variable, relevance_focus):
             samp_method=c[0],                   ## string ('balance' or 'extreme')
             drop_na_col=True,                   ## auto drop columns with nan's (bool)
             drop_na_row=True,                   ## auto drop rows with nan's (bool)
-            replacement=True,                       ## sampling replacement (bool)
+            replacement=True,                   ## sampling replacement (bool)
             manual_perc=False,                  ## boolean (True or False)
             perc_u=-1,                          ## positive real number (0 < R < 1) (only assinable if manual_perc == True)
             
             ## phi relevance arguments
             rel_thres=0.80,                     ## positive real number (0 < R < 1)
             rel_method='auto',                  ## string ('auto' or 'manual')
-            rel_xtrm_type=relevance_focus)       ## string ('low' or 'both' or 'high'))
+            rel_xtrm_type=relevance_focus)      ## string ('low' or 'both' or 'high'))
       
     elif strategy == "RO":
       balanced_data = ro.ro(
@@ -349,7 +344,7 @@ def augmentation(df, strategy, c, target_variable, relevance_focus):
           ## phi relevance arguments
           rel_thres=0.80,                     ## positive real number (0 < R < 1)
           rel_method='auto',                  ## string ('auto' or 'manual')
-          rel_xtrm_type=relevance_focus)       ## string ('low' or 'both' or 'high'))
+          rel_xtrm_type=relevance_focus)      ## string ('low' or 'both' or 'high'))
         
     elif strategy == "WERCS":
         
@@ -429,28 +424,85 @@ def augmentation(df, strategy, c, target_variable, relevance_focus):
                 drop_na_row = True      ## auto drop rows with nan's (bool)
             )
         
+    elif strategy == "GSMOTER":
+        df =  df.dropna(axis=1)
+        balanced_data = gsmoter.gsmoter(
+                ## main arguments
+                df = df,                            ## pandas dataframe
+                target_variable = target_variable,  ## string ('header name')
+                proportion = c[2],                  ## how many samples we want to add to the number of samples already existing 
+                k = c[1],                           ## positive integer (k < n)
+                selection_strategy = c[3],          ## string ('minority', 'majority' or 'combined')
+                truncation_factor = c[4],           ## real number (-1 < R < 1)
+                deformation_factor = c[0],          ## positive real number (0 < R < 1)
+                random_state = seed                 ## seed for random sampling (pos int or None)
+            )
+        
     elif strategy == "DAVID":
         try:
             balanced_data = david.david(
                 ## main arguments
-                data=df,                      # pandas dataframe
-                y_label=target_variable,      # target column name
-                alfa=c[0],                    # alpha parameter
-                proportion=c[1],              # proportion of synthetic samples
-                drop_na_col=True,             # drop columns with NaNs
-                drop_na_row=True              # drop rows with NaNs
+                data=df,                      ## pandas dataframe
+                y_label=target_variable,      ## target column name
+                alfa=c[0],                    ## alpha parameter
+                proportion=c[1],              ## proportion of synthetic samples
+                drop_na_col=True,             ## drop columns with NaNs
+                drop_na_row=True              ## drop rows with NaNs
             )
         except Exception as e:
-            print(f"⚠️ DAVID oversampling failed: {e}")
+            print(f"DAVID data augmentation failed: {e}")
             balanced_data = df.copy()
 
+    elif strategy == "TVAE":
+        metadata = SingleTableMetadata()
+        metadata.detect_from_dataframe(data=df)
+        
+        synth = TVAESynthesizer(metadata=metadata)
+        synth.fit(df)
+        n_samples = int(len(df) * c[0])
+        synthetic_data = synth.sample(n_samples)
+        
+        balanced_data = pd.concat([df, synthetic_data], ignore_index=True)
+        
+    elif strategy == "CTGAN":
+        metadata = SingleTableMetadata()
+        metadata.detect_from_dataframe(data=df)
+        
+        synth = CTGANSynthesizer(metadata=metadata)
+        synth.fit(df)
+        n_samples = int(len(df) * c[0])
+        synthetic_data = synth.sample(n_samples)
+        
+        balanced_data = pd.concat([df, synthetic_data], ignore_index=True)
+        
+    elif strategy == "CopulaGAN":
+        metadata = SingleTableMetadata()
+        metadata.detect_from_dataframe(data=df)
+        
+        synth = CopulaGANSynthesizer(metadata=metadata)
+        synth.fit(df)
+        n_samples = int(len(df) * c[0])
+        synthetic_data = synth.sample(n_samples)
+        
+        balanced_data = pd.concat([df, synthetic_data], ignore_index=True)
+        
+    elif strategy == "TabDDPM":
+        
+        X_tabddpm = df.iloc[:, :-1]
+        y_tabddpm = df.iloc[:, -1]   
+
+        x_synthesis, y_synthesis = ddpm_synthesis(X_tabddpm, y_tabddpm, generator_type="DDPM", oversample_num=int(len(df) * c[0]), seed=seed, init_synthesizer=True)
+        
+        synthetic_data = pd.concat([x_synthesis, y_synthesis], axis=1)
+        balanced_data = pd.concat([df, synthetic_data], ignore_index=True)
+        
     elif strategy == "KNNOR-REG":
         balanced_data = main_functions.do_knnor_reg(
             ## main arguments
             df,   ## pandas dataframe
         )
         
-    elif strategy == "CART":
+    elif strategy == "CARTGENIR":
         synth = cart.RarityWeightedCARTSynthesizer(df, target_column = target_variable)
         balanced_data, _ = synth.generate_synthetic_data(
             sampling_proportion = c[3],
@@ -467,11 +519,32 @@ def augmentation(df, strategy, c, target_variable, relevance_focus):
         balanced_data = df
 
     return balanced_data
+
+def get_stratified_kfold_splits(X, y, n_splits=5, n_repeats=2, random_state=4):
+    """
+    Simulate stratified K-Fold for regression by binning the target variable.
+
+    Returns:
+        A list of (train_idx, test_idx) for n_repeats × n_splits folds
+    """
+    np.random.seed(random_state)
+
+    # Bin the target variable into quantiles to simulate stratification for regression tasks, since KFold does not support stratification directly.
+    # Using quantile-based binning to ensure each bin has approximately the same number of samples.
+    y_binned = pd.qcut(y, q=10, duplicates='drop')  # Bin the target variable into quantiles
+    y_binned = pd.factorize(y_binned)[0]  # Convert bins to numeric labels
+
+    splits = []
+    for i in range(n_repeats):
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state + i)
+        for train_idx, test_idx in skf.split(X, y_binned):
+            splits.append((train_idx, test_idx))
+    return splits
      
 
 def repeatedKfold(df, X, y, dataset_name, target_variable, relevance_focus):
     """
-    Applies repeated K-Fold cross-validation to the dataset, trains models with various oversampling strategies, and evaluates their performance.
+    Applies stratified repeated K-Fold cross-validation to the dataset, trains models with various oversampling strategies, and evaluates their performance.
     Parameters:
     - df: the original dataset
     - X: features of the dataset
@@ -484,22 +557,10 @@ def repeatedKfold(df, X, y, dataset_name, target_variable, relevance_focus):
     - summary_df: DataFrame summarizing the results
     """
 
-    runs = RepeatedKFold(n_splits=5, n_repeats=2, random_state=4)
+    splits = get_stratified_kfold_splits(X, y, n_splits=5, n_repeats=2, random_state=4)
     
-    print(runs)
-
     strategies = { # Dictionary of oversampling strategies and their parameters
         "None": {},
-        "DAVID": {
-            "alpha": [1, 2],
-            "proportion": [0.9]
-        },
-        "CART": {
-            "alpha": [1, 1.5, 2.0],
-            "sampling_proportion": ['balance', 'extreme'],
-            "density_method": ['kde_baseline', 'denseweight', 'relevance'],
-            "noise": [True, False]
-        },
         "RU": {
             "%u": ["balance", "extreme"]
         },
@@ -527,7 +588,36 @@ def repeatedKfold(df, X, y, dataset_name, target_variable, relevance_focus):
             "ratio": [1.5, 1.75],
             "beta": [1, 2]
         },
-        "KNNOR-REG": {}  # KNNOR_REG has no tunable parameters
+        "GSMOTER": {
+            "truncation_factor": [-0.5, 0.5],
+            "deformation_factor": [0.7],
+            "selection_strategy": ["minority", "majority", "combined"],
+            "proportion": [0.75],
+            "k": [5]
+        },
+        "DAVID": {
+            "alpha": [1, 2],
+            "proportion": [0.9]
+        },
+        "TVAE": {
+          "proportion": [0.75]
+        },
+        "CTGAN": {
+          "proportion": [0.75]
+        },
+        "CopulaGAN": {
+          "proportion": [0.75]
+        },
+        "TabDDPM": {
+          "proportion": [0.75]
+        },
+        "KNNOR-REG": {},  # KNNOR_REG has no tunable parameters
+        "CARTGENIR": {
+            "alpha": [1.5, 2.0],
+            "sampling_proportion": ['balance', 'extreme'],
+            "density_method": ['denseweight', 'relevance'],
+            "noise": [0, 0.001]
+        }
     }
 
 
@@ -557,11 +647,10 @@ def repeatedKfold(df, X, y, dataset_name, target_variable, relevance_focus):
     }
     
     # Declare a DataFrame to store all results
-    all_results_df = pd.DataFrame(columns=['Dataset', 'Fold', 'Strategy', 'Parameter Combination', 'Model', 'Model Parameter Combination', 'MSE', 'RMSE', 'MAE', 'R2', 'WMSE', 'WRMSE', 'WMAE', 'WR2', 'SERA'])
+    all_results_df = pd.DataFrame(columns=['Dataset', 'Fold', 'Strategy', 'Parameter Combination', 'Model', 'Model Parameter Combination', 'MSE', 'RMSE', 'MAE', 'R2', 'WMSE', 'WRMSE', 'WMAE', 'WR2', 'SERA', 'DWRMSE', 'DWSERA'])
     
     # Iterate through each strategy and its parameters
     for strategy in strategies:
-        #print(strategy)
         params = strategies[strategy]
         keys = sorted(params)
         
@@ -584,15 +673,13 @@ def repeatedKfold(df, X, y, dataset_name, target_variable, relevance_focus):
                   for param_combo in itertools.product(*param_values):
                       
                       param_dict = dict(zip(param_names, param_combo))
-                      print(f"    ▶ Params: {param_dict}")
+                      print(f"Params: {param_dict}")
                       
-                      for fold, (train_index, test_index) in enumerate(runs.split(X, y)):
-                          print("run")
-                          print("Fold:", fold)
+                      for fold, (train_index, test_index) in enumerate(splits):
+                          print(f"Fold: {fold} | {strategy} | {regressor_name} | Params: {param_dict}")
+
                           X_train, X_test = X.iloc[train_index].reset_index(drop=True), X.iloc[test_index]
                           y_train, y_test = y.iloc[train_index].reset_index(drop=True), y.iloc[test_index]
-                          df_train = df.iloc[train_index].reset_index(drop=True)
-                          df_test = df.iloc[test_index].reset_index(drop=True)
                           
                           # Detect numeric and categorical columns
                           num_cols = X_train.select_dtypes(include='number').columns.tolist()
@@ -608,25 +695,20 @@ def repeatedKfold(df, X, y, dataset_name, target_variable, relevance_focus):
                           X_train_proc = preprocessor.fit_transform(X_train)
                           X_test_proc = preprocessor.transform(X_test)
                           
-                          # Attribute names after preprocessing
-                          feature_names = preprocessor.get_feature_names_out()
-                          
+                          # Attribute names after preprocessing                         
                           df_train_proc = pd.DataFrame(X_train_proc, columns = preprocessor.get_feature_names_out())
                           df_train_proc[target_variable] = y_train.values
-                          
-                          #print(df_train_proc.columns)
-                          #print(df_train_proc.shape)
-                          #print(X_test_proc.shape)
                           
                           X_test_proc_df = pd.DataFrame(X_test_proc, columns = preprocessor.get_feature_names_out())
                           
                           model = augment_train(base_model, param_dict, strategy, X_train_proc, y_train, df_train_proc, c, dataset_name, target_variable, relevance_focus)
                           y_pred = model.predict(X_test_proc_df)
                           
-                          sera = mse = rmse = mae = r2 = None
-                          wmse = wrmse = wmae = wr2 = None
+                          sera = dwsera = mse = rmse = mae = r2 = None
+                          wmse = wrmse = wmae = wr2 = dwrmse = None
 
                           sera = rm.sera(y_test, y_pred)
+                          dwsera = rm.sera_dw(y_test, y_pred)
                           mse = mean_squared_error(y_test, y_pred)
                           rmse = sqrt(mse)
                           mae = mean_absolute_error(y_test, y_pred)
@@ -636,25 +718,24 @@ def repeatedKfold(df, X, y, dataset_name, target_variable, relevance_focus):
                             wrmse = rm.phi_weighted_root_mse(y_test, y_pred)
                             wmae = rm.phi_weighted_mae(y_test, y_pred)
                             wr2 = rm.phi_weighted_r2(y_test, y_pred)
+                            dwrmse = rm.denseweight_weighted_root_mse(y_test, y_pred)
                           except Exception as e:
                             print(f"[Warning] WMSE/RMSE error: {e}")
                           
-                          print("sera", sera)
-                          
-                          new_row = pd.DataFrame({"Dataset": [dataset_name], "Fold": [fold], "Strategy": [strategy], "Parameter Combination": [c], "Model": [regressor_name], "Model Parameter Combination": [str(param_dict)], "MSE": [mse], "RMSE": [rmse], "MAE": [mae], "R2": [r2], 'WMSE': [wmse], 'WRMSE': [wrmse], 'WMAE': [wmae], 'WR2': [wr2], "SERA": [sera]})
+                          new_row = pd.DataFrame({"Dataset": [dataset_name], "Fold": [fold], "Strategy": [strategy], "Parameter Combination": [c], "Model": [regressor_name], "Model Parameter Combination": [str(param_dict)], "MSE": [mse], "RMSE": [rmse], "MAE": [mae], "R2": [r2], 'WMSE': [wmse], 'WRMSE': [wrmse], 'WMAE': [wmae], 'WR2': [wr2], "SERA": [sera], 'DWRMSE': [dwrmse], 'DWSERA': [dwsera]})
                           all_results_df = pd.concat([all_results_df, new_row], ignore_index=True)
                       
                       
     summary_df = (
         all_results_df
         .groupby(['Dataset', 'Strategy', 'Parameter Combination', 'Model', 'Model Parameter Combination'])[
-            ['MSE', 'RMSE', 'MAE', 'R2', 'WMSE', 'WRMSE', 'WMAE', 'WR2', 'SERA']
+            ['MSE', 'RMSE', 'MAE', 'R2', 'WMSE', 'WRMSE', 'WMAE', 'WR2', 'SERA', 'DWRMSE', 'DWSERA']
         ]
         .agg(['mean', 'std'])
         .reset_index()
     )
       
-    # Optional: flatten MultiIndex column names
+    # Flatten the MultiIndex columns
     summary_df.columns = ['_'.join(col).strip('_') for col in summary_df.columns.values]
                     
     return all_results_df, summary_df
@@ -666,13 +747,13 @@ summary_list = []
                 
 for dataset_name, target_variable in datasets_info:
     """ 
-    Process each dataset and apply repeated K-Fold cross-validation with oversampling strategies. 
+    Process each dataset and apply stratified repeated K-Fold cross-validation with oversampling strategies. 
     Parameters:
     - dataset_name: name of the dataset
     - target_variable: name of the target variable
     Returns:
     - all_results_df: DataFrame containing all results from the experiments for the dataset
-    - summary_df: DataFrame summarizing the results for the dataset
+    - summary_df: DataFrame summarising the results for the dataset
     """
     
     df = datasets[dataset_name]

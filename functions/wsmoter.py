@@ -19,7 +19,7 @@ from functions.wsmoter_over_sampling import WSMOTERNCdense
 
 
 def y_classes3(y):
-    
+    #print(y.describe())
     Q2 = y.describe()['50%']
     
     if y.min() == Q2:

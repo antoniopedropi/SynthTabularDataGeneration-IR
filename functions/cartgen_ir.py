@@ -1,5 +1,5 @@
-# Script path: functions/cart.py
-# This script implements a rarity-weighted CART synthesizer for generating synthetic data for imbalanced regression tasks.
+# Script path: functions/cartgen_ir.py
+# This script implements CARTGen-IR, a rarity-weighted CART synthesizer for generating synthetic data for imbalanced regression tasks.
 
 ## load dependency - third party
 import pandas as pd
@@ -35,7 +35,7 @@ class RarityWeightedCARTSynthesizer:
     # The computed rarity scores are added to the DataFrame as a new column 'global_rarity'.
     def _compute_global_rarity(self, density_method='kde_baseline', bandwidth=0.05, alpha=1.5):
         """
-        Returns global rarity scores for the target baraible based on the specified density method.
+        Returns global rarity scores for the target variable based on the specified density method.
         
         Parameters:
         - density_method: str, one of 'kde_baseline', 'denseweight', or 'relevance'
@@ -127,7 +127,7 @@ class RarityWeightedCARTSynthesizer:
         - density_method: str, one of 'kde_baseline', 'denseweight', or 'relevance' for rarity calculation
             - bandwidth: float, bandwidth for KDE (if using 'kde_baseline')
             - alpha: float, exponent for rarity calculation (default is 1.5)
-        - noise: bool, whether to add Gaussian noise to numeric variables in the resampled DataFrame
+        - noise: float, whether to add Gaussian noise to numeric variables in the resampled DataFrame
 
         Returns:
         - augmented_df: pd.DataFrame, the combined DataFrame of original and synthetic data
@@ -152,6 +152,10 @@ class RarityWeightedCARTSynthesizer:
         elif sampling_proportion == 'extreme':
             n_samples_total = int(self.df.shape[0] * 0.75)
             resample_size = int(n_samples_total / 5)
+
+        elif sampling_proportion != 'balance' and sampling_proportion != 'extreme':
+            n_samples_total = int(self.df.shape[0] * sampling_proportion)
+            resample_size = int(n_samples_total / 5)
     
         if resample_size is None:
             resample_size = len(self.df)
@@ -171,13 +175,13 @@ class RarityWeightedCARTSynthesizer:
         # Keep a copy for plotting/analysis
         self.resampled_df = resampled_df.reset_index(drop=True)
         
-        if noise:
+        if noise != 0:
             
         # Optional: Add noise to numeric variables in the resampled DataFrame
             self.resampled_df = self.resampled_df.copy()  # Ensure no view issues
     
             self.add_noise_to_resampled(
-                jitter_scale=0.01,
+                jitter_scale=noise,
                 only_duplicates=True,
                 exclude_target=True
             )

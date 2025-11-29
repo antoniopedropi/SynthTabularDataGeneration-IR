@@ -8,7 +8,7 @@
 # The WSMOTER algorithm is an extension of the SMOTE algorithm, which is a well-known algorithm for imbalanced classification.
 
 
-#Author's comments :
+# Author's comments :
 
 """Base class for sampling"""
 

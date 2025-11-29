@@ -35,7 +35,6 @@ from functions import relevance_function
 from functions import smogn
 from functions import random_under_sampling as ru
 from functions import random_over_sampling as ro
-from functions import random_over_sampling_normal as ron
 from functions import wercs
 from functions import gaussian_noise as gn
 from functions import smoter
